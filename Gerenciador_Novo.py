@@ -1,5 +1,6 @@
 import json
 import random
+import sys
 
 separador = "-" * 60
 
@@ -54,7 +55,7 @@ class Ativo:
         self.setor = setor
 
     def cadastrar_ativo(self):
-        print(f"Adicionando um novo ativo!\n{separador}")
+        print(f"\nAdicionando um novo ativo!\n{separador}")
         nome_ativo = input("Qual o nome do ativo? ").capitalize().strip()
         index_ativo = gerar_index_aleatorio()
         responsavel_ativo = input("Qual o nome do responsável pelo ativo? ").title().strip()
@@ -64,6 +65,20 @@ class Ativo:
 
         ativos.append(novo_ativo)
         salvar_ativos(ativos)
+
+    def remover_ativo(self):
+        print("Iniciando a remoção de um ativo!")
+        alvo = input("Digite o nome ou index do ativo que deseja remover: ").strip().lower()
+        for ativo in ativos:
+            if alvo in ativo["nome"].lower() or alvo in ativo["index"]:
+                ativos.remove(ativo)
+                salvar_ativos(ativos)
+                print(f"{separador}\nO ativo '{ativo['nome']}' foi removido com sucesso!")
+                return
+        print(f"Não foi encontrado nenhum ativo com o nome ou index {alvo}.")
+
+    def editar_ativo(self):
+        pass
 
 
 class Vulnerabilidade:
@@ -84,10 +99,38 @@ class gerenciador_ativos:
     def mostrar_ativos(lista_ativos):
         print(f"ATIVOS CADASTRADOS\n")
         for ativo in lista_ativos:
-            print(f"Nome: {ativo.get('nome')}\nIndex: {ativo.get('index')}\nResponsável: {ativo.get('responsavel')}\nSetor: {ativo.get('setor')}\n")
+            print(f"{ativo.get('index')}.Nome: {ativo.get('nome')}\nResponsável: {ativo.get('responsavel')}\nSetor: {ativo.get('setor')}\n")
+
+    @staticmethod
+    def menu_controle(continuar:bool):  #CHAMAR SEMPRE QUE O USUÁRIO TERMINAR ALGUMA OPERAÇÃO GRANDE. EX: CADASTRO OU REMOÇÃO DE ATIVO
+        deseja_sair = input(f"{separador}\nPara continuar pressione enter, para fechar o programa digite 'quit' ->").strip().lower()
+        while True:
+            if deseja_sair == "quit":
+                print("Fechando o Programa!")
+                sys.exit()
+            elif deseja_sair == "":
+                continuar = True; return continuar
+            else:
+                print("Opção inválida. Por favor, pressione 'enter' ou digite 'quit'.")
+
 
     def executar(self):
-        pass
+        print("Bem vindo ao Gerenciador de Ativos!")
+        gerenciador_ativos.mostrar_ativos(ativos)
+        print(f"Para cadastrar um novo ativo digite 'add'\nPara deletar um ativo digite 'del'\nPara editar um ativo digite 'edit'\nPara sair do programa digite 'quit', ")
+        escolha_usuario = input("-> ").strip().lower()
+        if escolha_usuario == "add":
+            Ativo.cadastrar_ativo()
+            gerenciador_ativos.menu_controle(True)
+        elif escolha_usuario == "del":
+            Ativo.remover_ativo()
+            gerenciador_ativos.menu_controle(True)
+        elif escolha_usuario == "edit":
+            Ativo.editar_ativo()
+            gerenciador_ativos.menu_controle(True)
+        elif escolha_usuario == "quit":
+            print("Fechando o programa!")
+            sys.exit()
 
 
 gerenciador_ativos.mostrar_ativos(ativos)
