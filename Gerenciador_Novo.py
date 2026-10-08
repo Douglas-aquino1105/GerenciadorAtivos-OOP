@@ -4,6 +4,13 @@ import sys
 
 separador = "-" * 60
 
+VERMELHO = "\033[31m"
+VERDE = "\033[32m"
+AMARELO = "\033[33m"
+AZUL = "\033[34m"
+NEGRITO = "\033[1m"
+RESET = "\033[0m"
+
 def carregar_ativos():
     try:
         with open("ativos.json", "r", encoding="utf-8") as file:
@@ -34,8 +41,18 @@ def gerar_index_aleatorio():
             else:
                 return index_novo
 
+def certeza_operaçao(escolha_usuario:bool): #RETORNA TRUE SE O USUÁRIO DESEJA REALIZAR A OPERAÇÃO!
 
-
+    while True:
+        certeza = input(f"Tem certeza de que deseja realizar essa operação? O resultado {VERMELHO}NÃO{RESET} pode ser revertido! Y/N").lower().strip()
+        if certeza == "yes" or certeza == "y":
+            escolha_usuario = True
+            return escolha_usuario
+        elif certeza == "n" or certeza == "no":
+            escolha_usuario = False
+            return escolha_usuario
+        else:
+            print(f"Escolha uma opção válida!\n{separador}")
 
 
 
@@ -78,7 +95,54 @@ class Ativo:
         print(f"Não foi encontrado nenhum ativo com o nome ou index {alvo}.")
 
     def editar_ativo(self):
-        pass
+
+        opcoes_editaveis = {
+            "1": "nome",
+            "nome": "nome",
+            "2": "vulnerabilidades",
+            "vulnerabilidades": "vulnerabilidades",
+            "vulnerabilidade": "vulnerabilidades",
+            "3": "responsavel",
+            "responsavel": "responsavel",
+            "responsável": "responsavel",
+            "4": "setor",
+            "setor": "setor",
+        }
+
+        print("Digite o nome ou index do ativo que deseja editar!")
+        alvo = input("-> ").lower().strip()
+        for ativo in ativos:
+            if alvo == ativo['nome'].lower() or alvo == ativo['index']:
+                print(f"Iniciando edição do ativo {ativo['nome']}!")
+                print("O que deseja editar?\n1.Nome\n2.Lista de vulnerabilidades\n3.Responsável\n4.Setor")
+                alvo_entrada = input("").lower().strip()
+                alvo_ediçao = opcoes_editaveis.get(alvo_entrada)
+                if alvo_ediçao == "nome":
+                    Ativo.ediçao_nome_ativo()
+                elif alvo_ediçao == "vulnerabilidades":
+                    pass
+                elif alvo_ediçao == "setor":
+                    pass
+                elif alvo_ediçao == "responsavel":
+                    pass
+
+
+    @staticmethod
+    def ediçao_nome_ativo(ativo): #TALVEZ PRECISE DE ALTERAÇÃO PARA CRIAR UM LOOP QUE SÓ SAI QUANDO O USUÁRIO COLOCA UM NOME DIFERENTE OU ESCOLHE CANCELAR
+        print(f"Editando o nome do ativo '{ativo['nome']}'\n{separador}")
+        print("Qual o nome que deseja atribuir a esse ativo?")
+        novo_nome = input("->").lower().strip()
+        if certeza_operaçao():
+            if novo_nome != "":
+                print(f"Ativo '{ativo['nome']}' teve seu nome substituido por '{novo_nome.capitalize()}'")
+                ativo['nome'] = novo_nome
+            else:
+                print("O novo nome não pode ser igual ao nome anterior!")
+        elif not certeza_operaçao():
+            print(f"Operação cancelada!\n{separador}")
+
+
+
 
 
 class Vulnerabilidade:
@@ -115,7 +179,7 @@ class gerenciador_ativos:
 
 
     def executar(self):
-        print("Bem vindo ao Gerenciador de Ativos!")
+        print(f"{VERDE}Bem vindo ao Gerenciador de Ativos!{RESET}\n")
         gerenciador_ativos.mostrar_ativos(ativos)
         print(f"Para cadastrar um novo ativo digite 'add'\nPara deletar um ativo digite 'del'\nPara editar um ativo digite 'edit'\nPara sair do programa digite 'quit', ")
         escolha_usuario = input("-> ").strip().lower()
@@ -133,7 +197,10 @@ class gerenciador_ativos:
             sys.exit()
 
 
-gerenciador_ativos.mostrar_ativos(ativos)
+# funçao_ativo = Ativo()
+# funçao_vulnerabilidade = Vulnerabilidade()
+funçao_gerenciador = gerenciador_ativos()
+funçao_gerenciador.executar()
 
 
 
