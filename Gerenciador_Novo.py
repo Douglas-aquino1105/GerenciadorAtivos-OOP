@@ -1,7 +1,6 @@
 import json
 import random
 import sys
-from cgitb import reset
 
 separador = "-" * 60
 
@@ -114,7 +113,7 @@ class Ativo:
         alvo = input("-> ").lower().strip()
         for ativo in ativos:
             if alvo == ativo['nome'].lower() or alvo == ativo['index']:
-                print(f"Iniciando edição do ativo {ativo['nome']}!")
+                print(f"Iniciando edição do ativo {AMARELO}'{ativo['nome']}'{RESET}!\n")
                 print("O que deseja editar?\n1.Nome\n2.Lista de vulnerabilidades\n3.Responsável\n4.Setor")
                 alvo_entrada = input("").lower().strip()
                 alvo_ediçao = opcoes_editaveis.get(alvo_entrada)
@@ -123,9 +122,9 @@ class Ativo:
                 elif alvo_ediçao == "vulnerabilidades":
                     pass
                 elif alvo_ediçao == "setor":
-                    pass
+                    Ativo.ediçao_setor_ativo(ativo)
                 elif alvo_ediçao == "responsavel":
-                    pass
+                    Ativo.ediçao_responsavel_ativo(ativo)
 
 
     @staticmethod
@@ -136,11 +135,42 @@ class Ativo:
         if certeza_operaçao():
             if novo_nome != "":
                 print(f"Ativo '{ativo['nome']}' teve seu nome substituido por '{novo_nome.capitalize()}'")
-                ativo['nome'] = novo_nome
+                ativo['nome'] = novo_nome.capitalize()
+                salvar_ativos(ativos)
             else:
                 print("O novo nome não pode ser igual ao nome anterior!")
         else:
             print(f"Operação cancelada!\n{separador}")
+
+    @staticmethod
+    def ediçao_responsavel_ativo(ativo):
+        print(f"Editando o responsável pelo ativo '{AMARELO}'{ativo['nome']}'{RESET}\n{separador}")
+        print("Qual o novo responsável que deseja atribuir a esse ativo?")
+        novo_responsavel = input("-> ").title().strip()
+        if novo_responsavel != "":
+            if certeza_operaçao():
+                print(f"Responsável do ativo {AMARELO}'{ativo['nome']}'{RESET} foi alterado para '{novo_responsavel}'")
+                ativo['responsavel'] = novo_responsavel
+                salvar_ativos(ativos)
+            else:
+                print(f"Operação cancelada!\n{separador}")
+        else:
+            print(f"O nome do responsável não pode ficar em branco!\n{separador}")
+
+    @staticmethod
+    def ediçao_setor_ativo(ativo):
+        print(f"Editando o setor do ativo {AMARELO}'{ativo['nome']}'{RESET}\n{separador}")
+        print("Qual o novo setor que deseja atribuir a esse ativo?")
+        novo_setor = input("-> ").capitalize().strip()
+        if novo_setor != "":
+            if certeza_operaçao():
+                print(f"Setor do ativo {AMARELO}'{ativo['nome']}'{RESET} foi alterado para '{novo_setor}'")
+                ativo['setor'] = novo_setor
+                salvar_ativos(ativos)
+            else:
+                print(f"Operação cancelada!\n{separador}")
+        else:
+            print(f"O setor não pode ficar em branco!\n{separador}")
 
 
 
@@ -171,7 +201,7 @@ class gerenciador_ativos:
 
     @staticmethod
     def menu_controle():  #CHAMAR SEMPRE QUE O USUÁRIO TERMINAR ALGUMA OPERAÇÃO GRANDE. EX: CADASTRO OU REMOÇÃO DE ATIVO
-        deseja_sair = input(f"{separador}\nPara continuar pressione enter, para fechar o programa digite 'quit' ->").strip().lower()
+        deseja_sair = input(f"{separador}\nPara continuar pressione enter, para fechar o programa digite {VERMELHO}'quit'{RESET} ->\n").strip().lower()
         while True:
             if deseja_sair == "quit":
                 print("Fechando o Programa!")
@@ -186,7 +216,7 @@ class gerenciador_ativos:
         print(f"{VERDE}Bem vindo ao Gerenciador de Ativos!{RESET}\n")
         while True:
             gerenciador_ativos.mostrar_ativos(ativos)
-            print(f"\nPara cadastrar um novo ativo digite 'add'\nPara deletar um ativo digite 'del'\nPara editar um ativo digite 'edit'\nPara sair do programa digite 'quit'")
+            print(f"\nPara cadastrar um novo ativo digite {AZUL}'add'{RESET}\nPara deletar um ativo digite {VERMELHO}'del'{RESET}\nPara editar um ativo digite {VERDE}'edit'{RESET}\nPara sair do programa digite {VERMELHO}'quit'{RESET}")
             escolha_usuario = input("-> ").strip().lower()
 
             if escolha_usuario == "add":
