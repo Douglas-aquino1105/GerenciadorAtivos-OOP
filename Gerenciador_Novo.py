@@ -1,6 +1,7 @@
 import json
 import random
 import sys
+from cgitb import reset
 
 separador = "-" * 60
 
@@ -29,22 +30,16 @@ ativos = carregar_ativos()
 
 def gerar_index_aleatorio():
 
-    continuar = True
-    while continuar:
+    while True:
         index_novo = str(random.randint(1, 9999))
-        for ativo in ativos:
-            if ativo.get("index") == index_novo:
-                #index já existe
-                continuar = False
-                break
+        if not any(ativo.get("index") == index_novo for ativo in ativos):
+            return index_novo
 
-            else:
-                return index_novo
 
-def certeza_operaçao(escolha_usuario:bool): #RETORNA TRUE SE O USUÁRIO DESEJA REALIZAR A OPERAÇÃO!
+def certeza_operaçao(): #RETORNA TRUE SE O USUÁRIO DESEJA REALIZAR A OPERAÇÃO!
 
     while True:
-        certeza = input(f"Tem certeza de que deseja realizar essa operação? O resultado {VERMELHO}NÃO{RESET} pode ser revertido! Y/N").lower().strip()
+        certeza = input(f"Tem certeza de que deseja realizar essa operação? O resultado {VERMELHO}NÃO{RESET} pode ser revertido! Y/N ").lower().strip()
         if certeza == "yes" or certeza == "y":
             escolha_usuario = True
             return escolha_usuario
@@ -71,30 +66,36 @@ class Ativo:
         self.responsavel = responsavel
         self.setor = setor
 
-    def cadastrar_ativo(self):
+    @staticmethod
+    def cadastrar_ativo():
         print(f"\nAdicionando um novo ativo!\n{separador}")
         nome_ativo = input("Qual o nome do ativo? ").capitalize().strip()
         index_ativo = gerar_index_aleatorio()
         responsavel_ativo = input("Qual o nome do responsável pelo ativo? ").title().strip()
         setor_ativo = input("Qual o setor do ativo? ").capitalize().strip()
 
-        novo_ativo = [{"nome": nome_ativo,"index": index_ativo, "responsavel": responsavel_ativo, "setor": setor_ativo}]
+        novo_ativo = {"nome": nome_ativo,"index": index_ativo, "responsavel": responsavel_ativo, "setor": setor_ativo}
 
         ativos.append(novo_ativo)
         salvar_ativos(ativos)
 
-    def remover_ativo(self):
-        print("Iniciando a remoção de um ativo!")
-        alvo = input("Digite o nome ou index do ativo que deseja remover: ").strip().lower()
+    @staticmethod
+    def remover_ativo():
+        print(f"Iniciando a {VERMELHO}remoção{RESET} de um ativo!")
+        alvo = str(input("Digite o nome ou index do ativo que deseja remover: ").strip().lower())
         for ativo in ativos:
             if alvo in ativo["nome"].lower() or alvo in ativo["index"]:
-                ativos.remove(ativo)
-                salvar_ativos(ativos)
-                print(f"{separador}\nO ativo '{ativo['nome']}' foi removido com sucesso!")
-                return
+                if certeza_operaçao():
+                    ativos.remove(ativo)
+                    salvar_ativos(ativos)
+                    print(f"{separador}\nO ativo '{ativo['nome']}' foi removido com sucesso!")
+                    return
+                else:
+                    print("Operação cancelada!")
         print(f"Não foi encontrado nenhum ativo com o nome ou index {alvo}.")
 
-    def editar_ativo(self):
+    @staticmethod
+    def editar_ativo():
 
         opcoes_editaveis = {
             "1": "nome",
@@ -118,7 +119,7 @@ class Ativo:
                 alvo_entrada = input("").lower().strip()
                 alvo_ediçao = opcoes_editaveis.get(alvo_entrada)
                 if alvo_ediçao == "nome":
-                    Ativo.ediçao_nome_ativo()
+                    Ativo.ediçao_nome_ativo(ativo)
                 elif alvo_ediçao == "vulnerabilidades":
                     pass
                 elif alvo_ediçao == "setor":
@@ -138,7 +139,7 @@ class Ativo:
                 ativo['nome'] = novo_nome
             else:
                 print("O novo nome não pode ser igual ao nome anterior!")
-        elif not certeza_operaçao():
+        else:
             print(f"Operação cancelada!\n{separador}")
 
 
@@ -161,12 +162,15 @@ class gerenciador_ativos:
 
     @staticmethod
     def mostrar_ativos(lista_ativos):
-        print(f"ATIVOS CADASTRADOS\n")
+        print(f"ATIVOS CADASTRADOS\n{separador}")
+        if not lista_ativos:
+            print("Nenhum ativo cadastrado no momento!")
         for ativo in lista_ativos:
-            print(f"{ativo.get('index')}.Nome: {ativo.get('nome')}\nResponsável: {ativo.get('responsavel')}\nSetor: {ativo.get('setor')}\n")
+            print(f"{AZUL}Index:{RESET} {ativo.get('index')}\n{AZUL}Nome:{RESET} {AMARELO}{ativo.get('nome')}{RESET}\n{AZUL}Responsável:{RESET} {ativo.get('responsavel')}\n{AZUL}Setor:{RESET} {ativo.get('setor')}\n{separador}")
+
 
     @staticmethod
-    def menu_controle(continuar:bool):  #CHAMAR SEMPRE QUE O USUÁRIO TERMINAR ALGUMA OPERAÇÃO GRANDE. EX: CADASTRO OU REMOÇÃO DE ATIVO
+    def menu_controle():  #CHAMAR SEMPRE QUE O USUÁRIO TERMINAR ALGUMA OPERAÇÃO GRANDE. EX: CADASTRO OU REMOÇÃO DE ATIVO
         deseja_sair = input(f"{separador}\nPara continuar pressione enter, para fechar o programa digite 'quit' ->").strip().lower()
         while True:
             if deseja_sair == "quit":
@@ -180,21 +184,25 @@ class gerenciador_ativos:
 
     def executar(self):
         print(f"{VERDE}Bem vindo ao Gerenciador de Ativos!{RESET}\n")
-        gerenciador_ativos.mostrar_ativos(ativos)
-        print(f"Para cadastrar um novo ativo digite 'add'\nPara deletar um ativo digite 'del'\nPara editar um ativo digite 'edit'\nPara sair do programa digite 'quit', ")
-        escolha_usuario = input("-> ").strip().lower()
-        if escolha_usuario == "add":
-            Ativo.cadastrar_ativo()
-            gerenciador_ativos.menu_controle(True)
-        elif escolha_usuario == "del":
-            Ativo.remover_ativo()
-            gerenciador_ativos.menu_controle(True)
-        elif escolha_usuario == "edit":
-            Ativo.editar_ativo()
-            gerenciador_ativos.menu_controle(True)
-        elif escolha_usuario == "quit":
-            print("Fechando o programa!")
-            sys.exit()
+        while True:
+            gerenciador_ativos.mostrar_ativos(ativos)
+            print(f"\nPara cadastrar um novo ativo digite 'add'\nPara deletar um ativo digite 'del'\nPara editar um ativo digite 'edit'\nPara sair do programa digite 'quit'")
+            escolha_usuario = input("-> ").strip().lower()
+
+            if escolha_usuario == "add":
+                Ativo.cadastrar_ativo()
+                gerenciador_ativos.menu_controle()
+            elif escolha_usuario == "del":
+                Ativo.remover_ativo()
+                gerenciador_ativos.menu_controle()
+            elif escolha_usuario == "edit":
+                Ativo.editar_ativo()
+                gerenciador_ativos.menu_controle()
+            elif escolha_usuario == "quit":
+                print("Fechando o programa!")
+                sys.exit()
+            else:
+                print("Opção inválida! Escolha entre add, del, edit ou quit.")
 
 
 # funçao_ativo = Ativo()
